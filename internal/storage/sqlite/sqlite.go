@@ -58,7 +58,7 @@ func (s *Storage) SaveUser(ctx context.Context, email string, passHash []byte) (
 func (s *Storage) User(ctx context.Context, email string) (models.User, error) {
 	const op = "storage.sqlite.User"
 
-	stmt, err := s.db.Prepare("SELECT id, emial, pass_hash FROM users WHERE email = ?")
+	stmt, err := s.db.Prepare("SELECT id, email, pass_hash FROM users WHERE email = ?")
 	if err != nil {
 		return models.User{}, fmt.Errorf("%s: %w", op, err)
 	}
@@ -100,4 +100,28 @@ func (s *Storage) IsAdmin(ctx context.Context, userID int64) (bool, error) {
 	}
 
 	return isAdmin, nil
+}
+
+// App returns app by id.
+func (s *Storage) App(ctx context.Context, id int) (models.App, error) {
+	const op = "storage.sqlite.App"
+
+	stmt, err := s.db.Prepare("SELECT id, name, secret FROM apps WHERE id = ?")
+	if err != nil {
+		return models.App{}, fmt.Errorf("%s: %w", op, err)
+	}
+
+	row := stmt.QueryRowContext(ctx, id)
+
+	var app models.App
+	err = row.Scan(&app.ID, &app.Name, &app.Secret)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.App{}, fmt.Errorf("%s: %w", op, storage.ErrAppNotFound)
+		}
+
+		return models.App{}, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return app, nil
 }

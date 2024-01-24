@@ -30,7 +30,6 @@ func main() {
 
 	go application.GRPCSrv.MustRun()
 
-	// TODO: initialize app
 	// TODO: run gRPC Server application
 
 	// Gareceful shutdown
